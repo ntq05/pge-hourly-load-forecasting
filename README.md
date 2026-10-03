@@ -281,8 +281,6 @@ This motivates the use of **Fourier time features** together with calendar featu
     - December exhibits the lowest solar irradiance of the year, with peak GHI reaching only around **400–500 W/m²**, approximately half the summer level.
     - Sunrise occurs later, with GHI beginning to increase at around **07:30**, while sunset occurs earlier, with GHI returning to zero at around **18:00**.
 
-> *[Add figure: Daily GHI profiles by month]*
-
 - **Extremely High Spatial Similarity Across the Five Sites:**
   - The 24-hour profiles of all five sites (`Site-1` to `Site-5`) in both Year 1 and Year 2 are almost **identical** in terms of magnitude, peak timing, and monthly variation patterns.
   - **Implication:** The five measurement stations are likely located within a relatively small geographic area and are subject to similar regional weather conditions and cloud-cover patterns.
@@ -438,13 +436,7 @@ The complete feature engineering pipeline is implemented in [`features.py`](./ut
 
 The competition dataset provides `Year`, `Month`, `Day`, and `Hour`, where `Hour` is represented using hour-ending labels from **1 to 24**.
 
-The pipeline first maps the competition-relative year labels to actual calendar years:
-
-$$
-Year_{competition} \rightarrow Year_{calendar}
-$$
-
-using the following mapping:
+The pipeline first maps the competition-relative year labels to actual calendar years using the following mapping:
 
 ```python
 ANCHOR_YEARS = {
@@ -464,7 +456,6 @@ This produces a timestamp at the **beginning of each hour**, ensuring that all 2
 
 The resulting `Date` variable is then used to derive temporal features such as day of week and weekend indicators.
 
-> *[Add figure: Example of the raw Year/Month/Day/Hour representation and the resulting Date timestamp]*
 
 #### 3.2 PLS-Based Weather Dimensionality Reduction
 
@@ -481,25 +472,11 @@ pls_ghi = PLSRegression(n_components=2)
 
 ##### Temperature
 
-The five temperature measurements are compressed into a single latent component:
-
-$$
-\mathbf{Temp}_{1:5}
-\rightarrow
-\text{Combined\_Temp}
-$$
-
-where `Combined_Temp` represents the temperature factor most relevant to the target `Load`.
+The five temperature measurements are compressed into a single latent component using PLS.
 
 ##### GHI
 
-The five GHI measurements are compressed into two latent components:
-
-$$
-\mathbf{GHI}_{1:5}
-\rightarrow
-\{\text{Combined\_GHI\_1},\text{Combined\_GHI\_2}\}
-$$
+The five GHI measurements are compressed into two latent components using PLS.
 
 Using two components allows the model to retain more information from the highly correlated GHI measurements while still substantially reducing dimensionality.
 
@@ -524,11 +501,7 @@ t = (Date - t0).total_seconds() / 3600
 
 where `t0` is the first timestamp in the combined dataset.
 
-This represents the elapsed time in hours from a fixed temporal origin:
-
-$$
-t = \frac{Date - t_0}{1\text{ hour}}
-$$
+This represents the elapsed time in hours from a fixed temporal origin.
 
 Using elapsed time rather than the dataframe row index makes the temporal representation independent of row numbering and preserves the actual time difference between observations.
 
@@ -537,20 +510,6 @@ Using elapsed time rather than the dataframe row index makes the temporal repres
 The EDA showed strong periodic patterns in electricity load, particularly at the **daily** and **weekly** levels.
 
 Fourier features are therefore introduced to represent these periodic patterns continuously.
-
-For a period $P$ and harmonic $k$:
-
-$$
-\text{sin}_{k}(t)
-=
-\sin\left(\frac{2\pi kt}{P}\right)
-$$
-
-$$
-\text{cos}_{k}(t)
-=
-\cos\left(\frac{2\pi kt}{P}\right)
-$$
 
 ##### Daily Periodicity
 
@@ -563,12 +522,6 @@ sin_day_k2
 cos_day_k2
 ```
 
-with:
-
-$$
-P_{day}=24
-$$
-
 The first harmonic captures the fundamental 24-hour cycle, while the second harmonic provides additional flexibility for the non-sinusoidal daily load pattern.
 
 ##### Weekly Periodicity
@@ -580,17 +533,7 @@ sin_week_k1
 cos_week_k1
 ```
 
-with:
-
-$$
-P_{week}=168
-$$
-
-This represents the complete 168-hour weekly cycle:
-
-$$
-168 = 7 \times 24
-$$
+This represents the complete 168-hour weekly cycle
 
 These features allow the model to represent smooth periodic changes without treating each hour as an unrelated categorical value.
 
@@ -634,14 +577,6 @@ delta_24_*
 
 ##### One-Hour Weather Lag
 
-The one-hour lag is defined as:
-
-$$
-X_{t-1}
-$$
-
-For example:
-
 ```text
 lag_1_temp
 lag_1_ghi_1
@@ -651,14 +586,6 @@ lag_1_ghi_2
 represent the corresponding weather factor one hour earlier.
 
 ##### One-Hour Change
-
-The one-hour difference is:
-
-$$
-\Delta X_t^{(1)}
-=
-X_t-X_{t-1}
-$$
 
 For example:
 
@@ -672,16 +599,6 @@ These features describe short-term weather transitions rather than only the abso
 
 ##### 24-Hour Change
 
-The 24-hour difference is:
-
-$$
-\Delta X_t^{(24)}
-=
-X_t-X_{t-24}
-$$
-
-For example:
-
 ```text
 delta_24_temp
 delta_24_ghi_1
@@ -693,33 +610,6 @@ These features capture how the current weather condition differs from approximat
 #### 3.7 Cooling and Heating Degree Features
 
 The pipeline also computes **Cooling Degree Hours (CDH)** and **Heating Degree Hours (HDH)** using the mean temperature across the five original temperature sites.
-
-First, the mean temperature is calculated:
-
-$$
-T_{mean}
-=
-\frac{1}{5}
-\sum_{i=1}^{5}T_i
-$$
-
-Using a base temperature of:
-
-$$
-T_{base}=20^\circ C
-$$
-
-the features are defined as:
-
-$$
-CDH=\max(T_{mean}-T_{base},0)
-$$
-
-$$
-HDH=\max(T_{base}-T_{mean},0)
-$$
-
-Therefore:
 
 * `CDH` increases when the average temperature exceeds $20^\circ C$.
 * `HDH` increases when the average temperature falls below $20^\circ C$.
@@ -741,28 +631,6 @@ The resulting feature set can be organized into the following groups:
 | Weather Dynamics    | `lag_1_*`, `delta_1_*`, `delta_24_*`                   | Capture short-term and day-over-day weather changes      |
 | Temperature Demand  | `CDH`, `HDH`                                           | Represent cooling/heating-related temperature conditions |
 
-#### 3.9 Feature Engineering Pipeline
-
-The overall transformation can be summarized as:
-
-$$
-\text{Raw Data}
-\rightarrow
-\text{Datetime Construction}
-\rightarrow
-\text{PLS Weather Compression}
-\rightarrow
-\text{Fourier Time Encoding}
-\rightarrow
-\text{Calendar Features}
-\rightarrow
-\text{Weather Lag/Delta Features}
-\rightarrow
-\text{CDH/HDH}
-$$
-
-The final engineered dataset combines **calendar information, periodic time representations, compressed weather factors, and short-term weather dynamics** as inputs to the XGBoost forecasting model.
-
 ### 4. Model
 
 #### 4.1 XGBoost Regression
@@ -773,47 +641,13 @@ XGBoost was selected because the EDA indicates that the relationship between ele
 
 This makes a tree-based nonlinear model a suitable choice for combining the engineered features.
 
-The model predicts hourly electricity load as:
-
-$$
-\hat{y}_t = f(X_t)
-$$
-
-where:
-
-- $X_t$ represents the engineered features at hour $t$.
-- $\hat{y}_t$ represents the predicted electricity load.
-- $f$ is the ensemble of boosted decision trees learned by XGBoost.
-
-
 #### 4.2 Gradient Boosting Framework
 
 XGBoost builds the prediction model sequentially by adding decision trees that correct the errors made by previous trees.
 
-The prediction after $K$ boosting iterations can be expressed as:
-
-$$
-\hat{y}_i
-=
-\sum_{k=1}^{K} f_k(x_i),
-\qquad
-f_k \in \mathcal{F}
-$$
-
-where each $f_k$ is an individual decision tree.
-
 At each boosting iteration, the newly added tree is optimized to reduce the remaining prediction error while controlling model complexity through regularization.
 
-For this regression task, the squared-error objective is used:
-
-$$
-L
-=
-\sum_{i=1}^{n}
-(y_i-\hat{y}_i)^2
-$$
-
-with additional regularization terms controlling the complexity of the tree ensemble.
+For this regression task, the squared-error objective is used.
 
 #### 4.3 Hyperparameter Optimization with Optuna
 
@@ -833,27 +667,7 @@ The best configuration obtained from the optimization process is:
 | `reg_alpha`        | 4.88 × 10⁻⁶ |
 | `reg_lambda`       |     1.89410 |
 
-The optimization objective is to minimize the Root Mean Squared Error (RMSE):
-
-$$
-RMSE =
-\sqrt{
-\frac{1}{n}
-\sum_{i=1}^{n}
-(y_i-\hat{y}_i)^2
-}
-$$
-
-The optimal hyperparameter configuration is therefore defined as:
-
-$$
-\theta^*
-=
-\arg\min_{\theta \in \Theta}
-RMSE(\theta)
-$$
-
-where $\theta$ represents the XGBoost hyperparameter configuration explored by Optuna.
+The optimization objective is to minimize the Root Mean Squared Error (RMSE).
 
 #### 4.4 Model Training
 
@@ -862,18 +676,6 @@ The model selection process follows the chronological structure of the dataset.
 During hyperparameter optimization, the training period is divided using **TimeSeriesSplit** rather than random cross-validation. This preserves the temporal ordering of the observations and prevents future observations from being used to predict earlier observations.
 
 After the optimal hyperparameters are selected, the final XGBoost model is retrained using the available training years before generating predictions for the unseen testing period.
-
-The overall modeling pipeline is:
-
-$$
-\text{Engineered Features}
-\rightarrow
-\text{Optuna}
-\rightarrow
-\text{XGBoost}
-\rightarrow
-\text{Hourly Load Prediction}
-$$
 
 #### 4.5 Why XGBoost?
 
@@ -1210,8 +1012,6 @@ The dataset contains hourly electricity load and exogenous weather information f
 The dataset is publicly available at:
 
 **Zenodo:** [2025 PG&E Energy Analytics Challenge Dataset](https://zenodo.org/records/17085273)
-
-**DOI:** `10.5281/zenodo.17085273`
 
 ### References
 
