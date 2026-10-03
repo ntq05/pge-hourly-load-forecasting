@@ -269,8 +269,6 @@ This motivates the use of **Fourier time features** together with calendar featu
   - Solar irradiance begins to increase from around **06:00**, reaches its highest value (Peak GHI) around **12:30–13:30**, and drops back to zero after approximately **19:30**.
   - This produces a clear daily solar cycle, with irradiance concentrated around the daytime hours.
 
-> *[Add figure: Daily GHI profiles across the five sites for Year 1 and Year 2]*
-
 - **Distinct Seasonal Patterns:**
   - **Summer Group (May, June, July):**
     - These months exhibit the highest GHI peaks of the year, reaching approximately **950–980 W/m²**.
@@ -314,8 +312,6 @@ This motivates the use of **Fourier time features** together with calendar featu
 - **168-Hour Cyclic Pattern (Weekly Dynamics):**
   - **Independence from the Day of the Week:** Unlike electricity load, which is influenced by working schedules, solar irradiance (GHI) is a natural phenomenon. The magnitude and peak GHI across all seven days from Monday to Sunday (`Mon`–`Sun`) within the same month are nearly **identical**.
   - This indicates that there is no clear systematic weekly effect in the solar irradiance profile itself.
-
-> *[Add figure: Weekly GHI profiles from Monday to Sunday]*
 
 - **Monthly Variation in Peak Magnitude (Monthly Peak Shift):**
   - **Peak Season (May, June, July):**
@@ -488,8 +484,6 @@ The resulting weather representation is therefore:
 | 5 GHI measurements         | `Combined_GHI_1`, `Combined_GHI_2` |
 
 The PLS transformation is fitted using the selected training years and then applied to the complete dataset, including the testing period.
-
-> *[Add figure: PLS transformation from five weather stations to latent weather factors]*
 
 #### 3.3 Continuous Time Representation
 
