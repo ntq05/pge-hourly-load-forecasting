@@ -23,13 +23,7 @@ The project uses the dataset provided by the **IISE PG&E Energy Analytics Challe
 | Temperature      | `Site-1 Temp` – `Site-5 Temp`  |
 | Solar Irradiance | `Site-1 GHI` – `Site-5 GHI`    |
 
-The forecasting task is formulated as a supervised regression problem, where the objective is to predict hourly electricity load from the available time and weather information:
-
-$$
-Load_t = f(X_t)
-$$
-
-where \(X_t\) represents the time and weather features associated with hour \(t\).
+The forecasting task is formulated as a supervised regression problem, where the objective is to predict hourly electricity load from the available time and weather information.
 
 The raw dataset is organized into three consecutive years. **Year 1 and Year 2 are available in the training data**, while **Year 3 corresponds to the testing period**, for which the ground-truth `Load` values are not provided.
 
@@ -605,8 +599,8 @@ These features capture how the current weather condition differs from approximat
 
 The pipeline also computes **Cooling Degree Hours (CDH)** and **Heating Degree Hours (HDH)** using the mean temperature across the five original temperature sites.
 
-* `CDH` increases when the average temperature exceeds $20^\circ C$.
-* `HDH` increases when the average temperature falls below $20^\circ C$.
+* `CDH` increases when the average temperature exceeds 20 degree Celsius.
+* `HDH` increases when the average temperature falls below 20 degree Celsius.
 
 These features provide an explicit representation of temperature conditions that may be associated with cooling and heating demand.
 
@@ -719,7 +713,7 @@ The main evaluation metrics are:
 * **MSE** — squared prediction error.
 * **MAE** — average absolute prediction error.
 * **MAPE** — percentage-based prediction error.
-* **$R^2$** — proportion of variance explained by the model.
+* **R-squared** — proportion of variance explained by the model.
 
 #### 5.3 Final Training and Forecasting
 
@@ -756,11 +750,7 @@ This validation design separates **hyperparameter optimization**, **model select
 
 Ablation experiments were conducted incrementally to evaluate the contribution of different feature groups to hourly load forecasting.
 
-In each experiment, the model was trained on **Year 1** and evaluated on the unseen **Year 2** period using five random seeds:
-
-$$
-Seeds = \{0, 1, 2, 3, 42\}
-$$
+In each experiment, the model was trained on **Year 1** and evaluated on the unseen **Year 2** period using five random seeds: Seeds = \{0, 1, 2, 3, 42\}
 
 The experiments progressively introduced:
 
@@ -788,7 +778,7 @@ The baseline does not apply dimensionality reduction, Fourier encoding, or weath
 | MSE    | 37,029.25 |   0.00 | 37,029.25 | 37,029.25 |
 | MAE    |    141.23 |   0.00 |    141.23 |    141.23 |
 | MAPE   |     6.81% |  0.00% |     6.81% |     6.81% |
-| $R^2$  |    0.7759 | 0.0000 |    0.7759 |    0.7759 |
+| R-squared |    0.7759 | 0.0000 |    0.7759 |    0.7759 |
 
 This baseline provides a reference point for measuring the contribution of the subsequent feature engineering stages.
 
@@ -815,7 +805,7 @@ The results are:
 | MSE    | 25,686.12 | 236.20 | 25,398.08 | 26,052.80 |
 | MAE    |    115.22 |   0.38 |    114.60 |    115.53 |
 | MAPE   |     5.42% |  0.02% |     5.38% |     5.43% |
-| $R^2$  |    0.8445 | 0.0014 |    0.8423 |    0.8463 |
+| R-squared  |    0.8445 | 0.0014 |    0.8423 |    0.8463 |
 
 Compared with the raw-feature baseline, RMSE decreases from **192.43 MW to 160.27 MW**, corresponding to an improvement of approximately **16.7%**.
 
@@ -851,7 +841,7 @@ The results are:
 | MSE    | 23,748.69 | 363.75 | 23,277.13 | 24,132.55 |
 | MAE    |    113.47 |   0.84 |    112.39 |    114.37 |
 | MAPE   |     5.35% |  0.04% |     5.31% |     5.39% |
-| $R^2$  |    0.8563 | 0.0022 |    0.8539 |    0.8591 |
+| R-squared  |    0.8563 | 0.0022 |    0.8539 |    0.8591 |
 
 Adding weather lag and delta features further reduces RMSE from **160.27 MW to 154.10 MW**, an additional improvement of approximately **3.8%**.
 
@@ -861,7 +851,7 @@ Compared with the original baseline, the complete feature configuration reduces 
 
 The progressive effect of feature engineering is summarized below:
 
-| Feature Configuration          |       RMSE |        MAE |      MAPE |      $R^2$ |
+| Feature Configuration          |       RMSE |        MAE |      MAPE |      R-squared |
 | ------------------------------ | ---------: | ---------: | --------: | ---------: |
 | Raw weather baseline           |     192.43 |     141.23 |     6.81% |     0.7759 |
 | + Time & periodicity features  |     160.27 |     115.22 |     5.42% |     0.8445 |
